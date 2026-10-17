@@ -23,6 +23,9 @@ import {
   X,
 } from 'lucide-react'
 
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+
 export default function AshaPatientDetailPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -42,6 +45,7 @@ export default function AshaPatientDetailPage() {
   const [entryTitle, setEntryTitle] = useState('')
   const [entryDate, setEntryDate] = useState(new Date().toISOString().substring(0, 10))
   const [entryNotes, setEntryNotes] = useState('')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [savingEntry, setSavingEntry] = useState(false)
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null)
 
@@ -89,6 +93,7 @@ export default function AshaPatientDetailPage() {
     setEntryTitle('')
     setEntryDate(new Date().toISOString().substring(0, 10))
     setEntryNotes('')
+    setSelectedFile(null)
     setShowEntryForm(true)
   }
 
@@ -98,7 +103,38 @@ export default function AshaPatientDetailPage() {
     setEntryTitle(entry.title)
     setEntryDate(entry.entry_date ? entry.entry_date.substring(0, 10) : new Date().toISOString().substring(0, 10))
     setEntryNotes(entry.notes || '')
+    setSelectedFile(null)
     setShowEntryForm(true)
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) {
+      setSelectedFile(null)
+      return
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setErrorMsg(t('records.fileSizeError'))
+      e.target.value = ''
+      setSelectedFile(null)
+      return
+    }
+
+    const fileType = file.type
+    const fileName = file.name.toLowerCase()
+    const isValidType = ALLOWED_MIME_TYPES.includes(fileType) ||
+      /\.(jpe?g|png|webp|pdf)$/i.test(fileName)
+
+    if (!isValidType) {
+      setErrorMsg(t('records.fileTypeError'))
+      e.target.value = ''
+      setSelectedFile(null)
+      return
+    }
+
+    setErrorMsg(null)
+    setSelectedFile(file)
   }
 
   const handleSaveEntry = async (e: React.FormEvent) => {
@@ -106,7 +142,7 @@ export default function AshaPatientDetailPage() {
     if (!id || !user) return
 
     if (!entryTitle.trim()) {
-      setErrorMsg('Entry title is required.')
+      setErrorMsg(t('records.titleRequired'))
       return
     }
 
@@ -115,27 +151,63 @@ export default function AshaPatientDetailPage() {
     setSuccessMsg(null)
 
     try {
-      const payload = {
-        patient_id: id,
-        asha_id: user.id,
-        entry_type: entryType,
-        title: entryTitle.trim(),
-        entry_date: entryDate || new Date().toISOString().substring(0, 10),
-        notes: entryNotes.trim() || null,
+      let filePath: string | null = null
+      let fileName: string | null = null
+      let fileType: string | null = null
+
+      if (selectedFile) {
+        const cleanName = selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+        const path = `${id}/${crypto.randomUUID()}-${cleanName}`
+
+        const { error: uploadErr } = await supabase.storage
+          .from('patient-files')
+          .upload(path, selectedFile, {
+            contentType: selectedFile.type,
+            upsert: false,
+          })
+
+        if (uploadErr) throw uploadErr
+
+        filePath = path
+        fileName = selectedFile.name
+        fileType = selectedFile.type
       }
 
       if (editingEntryId) {
+        const updatePayload: Record<string, any> = {
+          entry_type: entryType,
+          title: entryTitle.trim(),
+          entry_date: entryDate || new Date().toISOString().substring(0, 10),
+          notes: entryNotes.trim() || null,
+        }
+        if (filePath) {
+          updatePayload.file_path = filePath
+          updatePayload.file_name = fileName
+          updatePayload.file_type = fileType
+        }
+
         const { error } = await supabase
           .from('history_entries')
-          .update(payload)
+          .update(updatePayload)
           .eq('id', editingEntryId)
 
         if (error) throw error
         setSuccessMsg(t('app.feedback.saveSuccess'))
       } else {
+        const insertPayload: Record<string, any> = {
+          patient_id: id,
+          entry_type: entryType,
+          title: entryTitle.trim(),
+          entry_date: entryDate || new Date().toISOString().substring(0, 10),
+          notes: entryNotes.trim() || null,
+          file_path: filePath,
+          file_name: fileName,
+          file_type: fileType,
+        }
+
         const { error } = await supabase
           .from('history_entries')
-          .insert(payload)
+          .insert(insertPayload)
 
         if (error) throw error
         setSuccessMsg(t('app.feedback.saveSuccess'))
@@ -160,6 +232,12 @@ export default function AshaPatientDetailPage() {
     setSuccessMsg(null)
 
     try {
+      if (entry.file_path) {
+        await supabase.storage
+          .from('patient-files')
+          .remove([entry.file_path])
+      }
+
       const { error } = await supabase
         .from('history_entries')
         .delete()
@@ -356,7 +434,7 @@ export default function AshaPatientDetailPage() {
               </div>
 
               <div>
-                <label htmlFor="entry-date">{t('patientDetail.entryForm.date')} (Backdating allowed)</label>
+                <label htmlFor="entry-date">{t('patientDetail.entryForm.date')}</label>
                 <input
                   id="entry-date"
                   type="date"
@@ -392,7 +470,23 @@ export default function AshaPatientDetailPage() {
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+            {/* Optional Document Upload */}
+            <div>
+              <label htmlFor="entry-file-input">{t('patientDetail.entryForm.file')}</label>
+              <input
+                id="entry-file-input"
+                type="file"
+                className="input"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                onChange={handleFileChange}
+                style={{ paddingTop: '0.6rem' }}
+              />
+              <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '0.35rem' }}>
+                {t('patientDetail.entryForm.fileHint')}
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
               <button
                 type="button"
                 onClick={() => setShowEntryForm(false)}
@@ -406,14 +500,21 @@ export default function AshaPatientDetailPage() {
                 className="btn btn-primary"
                 id="btn-save-entry-submit"
               >
-                <Save size={16} />
-                <span>
-                  {savingEntry
-                    ? t('app.actions.submitting')
-                    : editingEntryId
-                    ? t('patientDetail.entryForm.update')
-                    : t('patientDetail.entryForm.submit')}
-                </span>
+                {savingEntry ? (
+                  <>
+                    <span className="spinner" />
+                    <span>{t('app.actions.uploading')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} />
+                    <span>
+                      {editingEntryId
+                        ? t('patientDetail.entryForm.update')
+                        : t('patientDetail.entryForm.submit')}
+                    </span>
+                  </>
+                )}
               </button>
             </div>
           </form>
@@ -444,6 +545,7 @@ export default function AshaPatientDetailPage() {
         <HistoryTimeline
           entries={historyEntries}
           isReadOnly={false}
+          patientProfileId={patient.profile_id}
           onEdit={openEditForm}
           onDelete={handleDeleteEntry}
           deletingId={deletingEntryId}

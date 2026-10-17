@@ -21,6 +21,7 @@
       "edit": "Edit",
       "view": "View",
       "back": "Back",
+      "close": "Close",
       "loading": "Loading...",
       "confirmDelete": "Are you sure you want to delete this?",
       "confirmDeletePatient": "Are you sure you want to delete patient {{name}}? This cannot be undone.",
@@ -28,7 +29,9 @@
       "allVillages": "All Villages",
       "claim": "Claim Patient",
       "claiming": "Claiming...",
-      "submitting": "Saving..."
+      "submitting": "Saving...",
+      "uploading": "Uploading file...",
+      "viewFile": "View File"
     },
     "feedback": {
       "deleteSuccess": "Deleted successfully",
@@ -97,9 +100,17 @@
     "title": "My Health Records",
     "profileTitle": "Patient Profile Details",
     "timelineTitle": "Medical History Timeline",
+    "addRecordBtn": "Add Record",
+    "editRecordBtn": "Edit Record",
     "noRecords": "No medical history entries found yet.",
-    "noRecordsSub": "Your ASHA worker will add vaccination records, clinic visits, and health check-ups here.",
-    "viewOnlyNote": "Records are managed and verified by your assigned ASHA worker.",
+    "noRecordsSub": "Add your medical reports or prescriptions, or consult your ASHA worker.",
+    "viewOnlyNote": "Records are managed by you and your assigned ASHA worker.",
+    "fileAttached": "Attached Document",
+    "fileUploadLabel": "Upload Document (Optional)",
+    "fileHint": "Supported: JPG, PNG, WebP, PDF (Max 10MB)",
+    "fileSizeError": "File exceeds the 10MB limit. Please choose a smaller file.",
+    "fileTypeError": "Unsupported file format. Please upload JPG, PNG, WebP or PDF.",
+    "titleRequired": "Record title is required.",
     "patientDetails": {
       "name": "Full Name",
       "phone": "Phone Number",
@@ -119,13 +130,17 @@
     "summary": {
       "totalPatients": "Total Patients",
       "needsAttention": "Needs Attention",
-      "todaysDoses": "Today's Doses"
+      "todaysDoses": "Today's Doses",
+      "newUploads": "New patient uploads (7 days)"
     },
     "section": {
       "flagged": "Flagged Patients",
       "myPatients": "My Patients",
-      "unassigned": "Unassigned Self-Registered Patients"
+      "unassigned": "Unassigned Self-Registered Patients",
+      "recentUploads": "Recent Patient Uploads"
     },
+    "recentUploadsSub": "Medical reports and prescriptions uploaded directly by community patients",
+    "noRecentUploads": "No patient uploads in the last 7 days.",
     "emptyAssigned": "No patients assigned yet. Add a new patient or claim an unassigned patient below.",
     "emptyUnassigned": "No unassigned patients currently waiting.",
     "addPatientBtn": "Add New Patient"
@@ -170,8 +185,9 @@
     "backToList": "Back to My Patients",
     "notFound": "Patient not found or you do not have permission to view this record.",
     "timeline": "Clinical & Visit History Timeline",
-    "addEntry": "Add Timeline Entry",
+    "addEntry": "Add Record / Entry",
     "editEntry": "Edit Entry",
+    "addedByPatient": "Added by patient",
     "entryTypes": {
       "birth": "Birth Details",
       "vaccination": "Vaccination",
@@ -185,8 +201,10 @@
       "title": "Title / Diagnosis / Description",
       "date": "Date of Event / Visit",
       "notes": "Clinical Notes / Observation",
-      "submit": "Save Entry",
-      "update": "Update Entry"
+      "file": "Attached Document (Optional)",
+      "fileHint": "Supported: JPG, PNG, WebP, PDF (Max 10MB)",
+      "submit": "Save Record",
+      "update": "Update Record"
     },
     "emptyTimeline": "No history entries added yet.",
     "emptyTimelineSub": "Add vaccines, clinic visits, prescriptions, and health observations above."

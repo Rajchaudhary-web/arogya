@@ -4,18 +4,24 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import Card from '../components/Card'
-import type { Patient } from '../lib/types'
+import type { Patient, HistoryEntry } from '../lib/types'
 import {
   Users,
   AlertTriangle,
-  Pill,
+  UploadCloud,
   UserPlus,
   ArrowRight,
   ShieldAlert,
   CheckCircle,
   Eye,
   UserCheck,
+  Calendar,
+  FileText,
 } from 'lucide-react'
+
+interface RecentUploadItem extends HistoryEntry {
+  patientName?: string
+}
 
 export default function AshaDashboard() {
   const { t } = useTranslation()
@@ -23,6 +29,8 @@ export default function AshaDashboard() {
   const navigate = useNavigate()
 
   const [totalCount, setTotalCount] = useState<number | null>(null)
+  const [newUploadsCount, setNewUploadsCount] = useState<number | null>(null)
+  const [recentUploads, setRecentUploads] = useState<RecentUploadItem[]>([])
   const [unassignedPatients, setUnassignedPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
   const [claimingId, setClaimingId] = useState<string | null>(null)
@@ -46,7 +54,46 @@ export default function AshaDashboard() {
       if (countErr) throw countErr
       setTotalCount(count ?? 0)
 
-      // 2. Fetch unassigned patients (asha_id is null)
+      // 2. Fetch new patient uploads from the last 7 days
+      // where added_by is not null and is not the current ASHA's id
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const { data: uploadsData, error: uploadsErr } = await supabase
+        .from('history_entries')
+        .select('*')
+        .gte('created_at', sevenDaysAgo)
+        .not('added_by', 'is', null)
+        .neq('added_by', user.id)
+        .order('created_at', { ascending: false })
+
+      if (uploadsErr) throw uploadsErr
+
+      const nonAshaUploads = uploadsData ?? []
+      setNewUploadsCount(nonAshaUploads.length)
+
+      // 3. For the latest 5 patient uploads, fetch patient names
+      const latestFive = nonAshaUploads.slice(0, 5)
+      if (latestFive.length > 0) {
+        const patientIds = Array.from(new Set(latestFive.map((u) => u.patient_id)))
+        const { data: patientsData } = await supabase
+          .from('patients')
+          .select('id, name')
+          .in('id', patientIds)
+
+        const patientMap = new Map<string, string>()
+        patientsData?.forEach((p) => {
+          patientMap.set(p.id, p.name)
+        })
+
+        const enrichedUploads: RecentUploadItem[] = latestFive.map((item) => ({
+          ...item,
+          patientName: patientMap.get(item.patient_id) || 'Patient',
+        }))
+        setRecentUploads(enrichedUploads)
+      } else {
+        setRecentUploads([])
+      }
+
+      // 4. Fetch unassigned patients (asha_id is null)
       const { data: unassignedData, error: unassignedErr } = await supabase
         .from('patients')
         .select('*')
@@ -188,7 +235,7 @@ export default function AshaDashboard() {
           <div className="stat-label">{t('asha.summary.needsAttention')}</div>
         </div>
 
-        {/* Today's Doses (0 for now) */}
+        {/* New patient uploads (7 days) */}
         <div className="stat-card" style={{ borderTop: '4px solid var(--color-accent)' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.4rem' }}>
             <div style={{
@@ -200,15 +247,100 @@ export default function AshaDashboard() {
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              <Pill size={22} color="var(--color-accent)" />
+              <UploadCloud size={22} color="var(--color-accent)" />
             </div>
           </div>
           <div className="stat-value" style={{ color: 'var(--color-accent)' }}>
-            0
+            {loading ? <span className="spinner" /> : newUploadsCount ?? 0}
           </div>
-          <div className="stat-label">{t('asha.summary.todaysDoses')}</div>
+          <div className="stat-label">{t('asha.summary.newUploads')}</div>
         </div>
       </div>
+
+      {/* Section: Recent patient uploads (latest 5) */}
+      <section>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <div>
+            <h2 style={{ fontSize: '1.25rem' }}>{t('asha.section.recentUploads')}</h2>
+            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+              {t('asha.recentUploadsSub')}
+            </p>
+          </div>
+          <span className="badge badge-yellow">
+            {recentUploads.length}
+          </span>
+        </div>
+
+        {loading ? (
+          <Card>
+            <div className="empty-state">
+              <span className="spinner spinner-lg" />
+              <p>{t('app.actions.loading')}</p>
+            </div>
+          </Card>
+        ) : recentUploads.length === 0 ? (
+          <Card className="card-tint-yellow">
+            <div className="empty-state">
+              <div className="empty-state-icon" style={{ background: 'var(--color-yellow-tint)' }}>
+                <UploadCloud size={30} color="var(--color-accent)" />
+              </div>
+              <p style={{ fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                {t('asha.noRecentUploads')}
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {recentUploads.map((item) => (
+              <Card
+                key={item.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '0.75rem',
+                  padding: '1rem 1.25rem',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'var(--color-accent-tint)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <FileText size={20} color="var(--color-accent)" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.05rem', margin: 0 }}>{item.title}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{item.patientName}</span>
+                      <span>•</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <Calendar size={13} />
+                        {new Date(item.entry_date || item.created_at || Date.now()).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <Link
+                  to={`/asha/patients/${item.patient_id}`}
+                  className="btn btn-outline btn-sm"
+                  id={`btn-view-upload-patient-${item.id}`}
+                >
+                  <Eye size={15} />
+                  <span>{t('app.actions.view')}</span>
+                </Link>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Quick Action Navigation Strip */}
       <div style={{

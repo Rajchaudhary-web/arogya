@@ -52,10 +52,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  end={item.to === '/patient' || item.to === '/asha'}
-                  className={({ isActive }) =>
-                    `sidebar-nav-item ${isActive ? 'active' : ''}`
-                  }
+                  className={({ isActive }) => {
+                    const isCurrent =
+                      item.to === '/asha/patients'
+                        ? isActive && !window.location.pathname.startsWith('/asha/patients/add')
+                        : isActive
+                    return `sidebar-nav-item ${isCurrent ? 'active' : ''}`
+                  }}
+                  end={item.to === '/patient' || item.to === '/asha' || item.to === '/asha/patients/add'}
                 >
                   <Icon size={20} />
                   <span>{item.label}</span>
@@ -79,10 +83,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/patient' || item.to === '/asha'}
-              className={({ isActive }) =>
-                `mobile-tab-item ${isActive ? 'active' : ''}`
-              }
+              className={({ isActive }) => {
+                const isCurrent =
+                  item.to === '/asha/patients'
+                    ? isActive && !window.location.pathname.startsWith('/asha/patients/add')
+                    : isActive
+                return `mobile-tab-item ${isCurrent ? 'active' : ''}`
+              }}
+              end={item.to === '/patient' || item.to === '/asha' || item.to === '/asha/patients/add'}
             >
               <Icon size={22} />
               <span>{item.label}</span>

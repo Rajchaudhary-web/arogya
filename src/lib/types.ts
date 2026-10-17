@@ -1,6 +1,8 @@
 export interface Patient {
   id: string
   created_at?: string
+  profile_id?: string | null
+  asha_id?: string | null
   name: string
   dob?: string | null
   gender?: string | null
@@ -9,7 +11,6 @@ export interface Patient {
   blood_group?: string | null
   allergies?: string | null
   birth_details?: string | null
-  asha_id?: string | null
 }
 
 export type HistoryEntryType =
@@ -24,11 +25,14 @@ export interface HistoryEntry {
   id: string
   created_at?: string
   patient_id: string
-  asha_id?: string | null
   entry_type: HistoryEntryType
   title: string
   notes?: string | null
   entry_date: string
+  file_path?: string | null
+  file_name?: string | null
+  file_type?: string | null
+  added_by?: string | null
 }
 
 /**
