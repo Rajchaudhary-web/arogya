@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import { User, Stethoscope, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import i18n from '../i18n'
 
-type Role = 'patient' | 'asha_worker'
+type Role = 'patient' | 'asha'
 type Mode = 'login' | 'signup'
 
 export default function AuthPage() {
@@ -169,17 +169,17 @@ export default function AuthPage() {
                   {/* ASHA Worker */}
                   <button
                     type="button"
-                    className={`role-card${role === 'asha_worker' ? ' selected' : ''}`}
-                    onClick={() => setRole('asha_worker')}
+                    className={`role-card${role === 'asha' ? ' selected' : ''}`}
+                    onClick={() => setRole('asha')}
                     id="role-asha"
-                    aria-pressed={role === 'asha_worker'}
+                    aria-pressed={role === 'asha'}
                   >
                     <div style={{
                       width: '44px', height: '44px', borderRadius: '50%',
-                      background: role === 'asha_worker' ? 'var(--color-accent)' : 'var(--color-accent-tint)',
+                      background: role === 'asha' ? 'var(--color-accent)' : 'var(--color-accent-tint)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <Stethoscope size={22} color={role === 'asha_worker' ? '#fff' : 'var(--color-accent)'} />
+                      <Stethoscope size={22} color={role === 'asha' ? '#fff' : 'var(--color-accent)'} />
                     </div>
                     <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{t('auth.roleAsha')}</span>
                     <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>

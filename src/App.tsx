@@ -1,49 +1,78 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
-import Header from './components/Header'
+import AppLayout from './components/AppLayout'
 import AuthPage from './pages/AuthPage'
 import RootRedirect from './pages/RootRedirect'
 import PatientHome from './pages/PatientHome'
+import PatientRecordsPage from './pages/PatientRecordsPage'
 import AshaDashboard from './pages/AshaDashboard'
+import MyPatientsPage from './pages/MyPatientsPage'
+import AddEditPatientPage from './pages/AddEditPatientPage'
+import AshaPatientDetailPage from './pages/AshaPatientDetailPage'
 import PlaceholderPage from './pages/PlaceholderPage'
-
-function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <Header />
-      {children}
-    </>
-  )
-}
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Public */}
+          {/* Public Auth */}
           <Route path="/auth" element={<AuthPage />} />
 
-          {/* Protected — all under Layout with Header */}
+          {/* Protected Routes inside AppLayout (Header + Desktop Sidebar + Mobile Tabbar + Footer) */}
           <Route element={<ProtectedRoute />}>
             <Route
               path="/"
-              element={<Layout><RootRedirect /></Layout>}
+              element={<AppLayout><RootRedirect /></AppLayout>}
             />
+
+            {/* Patient Routes */}
             <Route
               path="/patient"
-              element={<Layout><PatientHome /></Layout>}
+              element={<AppLayout><PatientHome /></AppLayout>}
             />
             <Route
-              path="/asha"
-              element={<Layout><AshaDashboard /></Layout>}
+              path="/records"
+              element={<AppLayout><PatientRecordsPage /></AppLayout>}
             />
-            {/* Tile placeholder routes */}
-            <Route path="/medicines" element={<Layout><PlaceholderPage /></Layout>} />
-            <Route path="/records"   element={<Layout><PlaceholderPage /></Layout>} />
-            <Route path="/checkin"   element={<Layout><PlaceholderPage /></Layout>} />
-            <Route path="/ask"       element={<Layout><PlaceholderPage /></Layout>} />
+            <Route
+              path="/medicines"
+              element={<AppLayout><PlaceholderPage /></AppLayout>}
+            />
+            <Route
+              path="/checkin"
+              element={<AppLayout><PlaceholderPage /></AppLayout>}
+            />
+            <Route
+              path="/ask"
+              element={<AppLayout><PlaceholderPage /></AppLayout>}
+            />
+
+            {/* ASHA Worker Routes */}
+            <Route
+              path="/asha"
+              element={<AppLayout><AshaDashboard /></AppLayout>}
+            />
+            <Route
+              path="/asha/patients"
+              element={<AppLayout><MyPatientsPage /></AppLayout>}
+            />
+            <Route
+              path="/asha/patients/add"
+              element={<AppLayout><AddEditPatientPage /></AppLayout>}
+            />
+            <Route
+              path="/asha/patients/:id/edit"
+              element={<AppLayout><AddEditPatientPage /></AppLayout>}
+            />
+            <Route
+              path="/asha/patients/:id"
+              element={<AppLayout><AshaPatientDetailPage /></AppLayout>}
+            />
+
+            {/* Catch-all redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </AuthProvider>

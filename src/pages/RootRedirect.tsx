@@ -20,6 +20,6 @@ export default function RootRedirect() {
 
   if (!session) return <Navigate to="/auth" replace />
 
-  if (profile?.role === 'asha_worker') return <Navigate to="/asha" replace />
+  if (profile?.role === 'asha') return <Navigate to="/asha" replace />
   return <Navigate to="/patient" replace />
 }

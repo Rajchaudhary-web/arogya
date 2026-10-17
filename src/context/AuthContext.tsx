@@ -4,7 +4,7 @@ import type { Session, User } from '@supabase/supabase-js'
 
 interface Profile {
   id: string
-  role: 'patient' | 'asha_worker'
+  role: 'patient' | 'asha'
   full_name: string
   phone?: string
 }

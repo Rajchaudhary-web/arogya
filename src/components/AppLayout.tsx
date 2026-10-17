@@ -1,0 +1,101 @@
+import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useAuth } from '../context/AuthContext'
+import Header from './Header'
+import {
+  Home,
+  Pill,
+  FileText,
+  ClipboardCheck,
+  MessageCircle,
+  LayoutDashboard,
+  Users,
+  UserPlus,
+} from 'lucide-react'
+
+interface AppLayoutProps {
+  children: React.ReactNode
+}
+
+export default function AppLayout({ children }: AppLayoutProps) {
+  const { t } = useTranslation()
+  const { profile } = useAuth()
+  const isAsha = profile?.role === 'asha'
+
+  const patientNav = [
+    { to: '/patient', label: t('app.nav.home'), icon: Home },
+    { to: '/medicines', label: t('app.nav.medicines'), icon: Pill },
+    { to: '/records', label: t('app.nav.records'), icon: FileText },
+    { to: '/checkin', label: t('app.nav.checkin'), icon: ClipboardCheck },
+    { to: '/ask', label: t('app.nav.ask'), icon: MessageCircle },
+  ]
+
+  const ashaNav = [
+    { to: '/asha', label: t('app.nav.dashboard'), icon: LayoutDashboard },
+    { to: '/asha/patients', label: t('app.nav.myPatients'), icon: Users },
+    { to: '/asha/patients/add', label: t('app.nav.addPatient'), icon: UserPlus },
+  ]
+
+  const navItems = isAsha ? ashaNav : patientNav
+
+  return (
+    <div className="app-shell-root">
+      <Header />
+
+      <div className="app-shell-body">
+        {/* Desktop Left Sidebar */}
+        <aside className="app-sidebar" aria-label="Desktop Navigation">
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            {navItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.to === '/patient' || item.to === '/asha'}
+                  className={({ isActive }) =>
+                    `sidebar-nav-item ${isActive ? 'active' : ''}`
+                  }
+                >
+                  <Icon size={20} />
+                  <span>{item.label}</span>
+                </NavLink>
+              )
+            })}
+          </nav>
+        </aside>
+
+        {/* Main Page Content */}
+        <main className="app-main-content">
+          {children}
+        </main>
+      </div>
+
+      {/* Mobile Fixed Bottom Tab Bar */}
+      <nav className="mobile-tabbar" aria-label="Mobile Navigation">
+        {navItems.map((item) => {
+          const Icon = item.icon
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/patient' || item.to === '/asha'}
+              className={({ isActive }) =>
+                `mobile-tab-item ${isActive ? 'active' : ''}`
+              }
+            >
+              <Icon size={22} />
+              <span>{item.label}</span>
+            </NavLink>
+          )
+        })}
+      </nav>
+
+      {/* Slim Footer */}
+      <footer className="app-footer">
+        <p className="tagline">Arogya: {t('app.tagline')}</p>
+        <p>{t('app.madeForAsha')}</p>
+      </footer>
+    </div>
+  )
+}
