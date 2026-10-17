@@ -1,0 +1,55 @@
+{
+  "app": {
+    "tagline": "Gaon se Hospital tak"
+  },
+  "auth": {
+    "login": "लॉगिन",
+    "signup": "साइन‑अप",
+    "role": "मैं ... हूँ",
+    "rolePatient": "रोगी",
+    "rolePatientDesc": "मुझे स्वास्थ्य रिकॉर्ड और रिमाइंडर चाहिए",
+    "roleAsha": "अशा कार्यकर्ता",
+    "roleAshaDesc": "मैं अपने समुदाय की मदद करता/करती हूँ",
+    "fullName": "पूरा नाम",
+    "phone": "फ़ोन नंबर",
+    "email": "ई‑मेल",
+    "password": "पासवर्ड",
+    "loginBtn": "लॉगिन",
+    "signupBtn": "खाता बनाएं",
+    "noAccount": "खाता नहीं है?",
+    "haveAccount": "पहले से खाता है?",
+    "switchToSignup": "यहाँ साइन‑अप करें",
+    "switchToLogin": "यहाँ लॉगिन करें",
+    "error": {
+      "fields": "सभी आवश्यक फ़ील्ड भरें।",
+      "selectRole": "कृपया भूमिका चुनें।",
+      "generic": "कुछ गड़बड़ हुई। पुनः प्रयास करें।"
+    }
+  },
+  "patient": {
+    "greeting": "नमस्ते, {{name}}!",
+    "subtitle": "आपके स्वास्थ्य हब में आपका स्वागत है।",
+    "tiles": {
+      "medicines": "आज की दवाइयाँ",
+      "records": "मेरे रिकॉर्ड",
+      "checkin": "दैनिक चेक‑इन",
+      "ask": "अरोग्या से पूछें"
+    }
+  },
+  "asha": {
+    "greeting": "नमस्ते, {{name}}!",
+    "summary": {
+      "totalPatients": "कुल रोगी",
+      "needsAttention": "ध्यान की आवश्यकता",
+      "todaysDoses": "आज के डोज़"
+    },
+    "section": {
+      "flagged": "फ़्लैग किए गए रोगी",
+      "myPatients": "मेरे रोगी"
+    }
+  },
+  "placeholder": {
+    "comingSoonDesc": "यह फीचर निर्माणाधीन है। जल्द ही उपलब्ध होगा!",
+    "backHome": "होम पर वापस"
+  }
+}

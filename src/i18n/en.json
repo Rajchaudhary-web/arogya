@@ -1,0 +1,55 @@
+{
+  "app": {
+    "tagline": "Gaon se Hospital tak"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "role": "I am a...",
+    "rolePatient": "Patient",
+    "rolePatientDesc": "I need health records and reminders",
+    "roleAsha": "ASHA Worker",
+    "roleAshaDesc": "I help my community",
+    "fullName": "Full Name",
+    "phone": "Phone Number",
+    "email": "Email",
+    "password": "Password",
+    "loginBtn": "Log In",
+    "signupBtn": "Create Account",
+    "noAccount": "Don’t have an account?",
+    "haveAccount": "Already have an account?",
+    "switchToSignup": "Sign up here",
+    "switchToLogin": "Log in here",
+    "error": {
+      "fields": "All required fields must be filled.",
+      "selectRole": "Please choose a role.",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "patient": {
+    "greeting": "Hello, {{name}}!",
+    "subtitle": "Welcome to your health hub.",
+    "tiles": {
+      "medicines": "Today's Medicines",
+      "records": "My Records",
+      "checkin": "Daily Check‑in",
+      "ask": "Ask Arogya"
+    }
+  },
+  "asha": {
+    "greeting": "Namaste, {{name}}!",
+    "summary": {
+      "totalPatients": "Total Patients",
+      "needsAttention": "Needs Attention",
+      "todaysDoses": "Today's Doses"
+    },
+    "section": {
+      "flagged": "Flagged Patients",
+      "myPatients": "My Patients"
+    }
+  },
+  "placeholder": {
+    "comingSoonDesc": "This feature is under construction. Stay tuned!",
+    "backHome": "Back to Home"
+  }
+}
