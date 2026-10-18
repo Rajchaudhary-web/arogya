@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import Card from '../components/Card'
-import { type Patient, calculateAge } from '../lib/types'
+import { type Patient, type PatientCategory, calculateAge } from '../lib/types'
 import {
   Search,
   Filter,
@@ -29,6 +29,7 @@ export default function MyPatientsPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedVillage, setSelectedVillage] = useState<string>('all')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -70,19 +71,25 @@ export default function MyPatientsPage() {
     return Array.from(villages).sort()
   }, [patients])
 
-  // Filtered patients based on search and village
+  // Filtered patients based on search, village, and category
   const filteredPatients = useMemo(() => {
     return patients.filter((p) => {
-      const matchesSearch = searchQuery.trim() === '' ||
+      const matchesSearch =
+        searchQuery.trim() === '' ||
         p.name.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
         (p.phone && p.phone.includes(searchQuery.trim()))
 
-      const matchesVillage = selectedVillage === 'all' ||
+      const matchesVillage =
+        selectedVillage === 'all' ||
         (p.village && p.village.trim().toLowerCase() === selectedVillage.toLowerCase())
 
-      return matchesSearch && matchesVillage
+      const patientCat = p.category || 'general'
+      const matchesCategory =
+        selectedCategory === 'all' || patientCat === selectedCategory
+
+      return matchesSearch && matchesVillage && matchesCategory
     })
-  }, [patients, searchQuery, selectedVillage])
+  }, [patients, searchQuery, selectedVillage, selectedCategory])
 
   const handleDeletePatient = async (patient: Patient) => {
     const confirmed = window.confirm(
@@ -101,7 +108,6 @@ export default function MyPatientsPage() {
         .eq('id', patient.id)
 
       if (error) throw error
-
       setSuccessMsg(t('app.feedback.deleteSuccess'))
       setPatients((prev) => prev.filter((p) => p.id !== patient.id))
     } catch (err: any) {
@@ -112,8 +118,23 @@ export default function MyPatientsPage() {
     }
   }
 
+  // Category badge helper
+  const renderCategoryBadge = (cat?: PatientCategory | null) => {
+    const categoryKey = cat || 'general'
+    let badgeClass = 'badge-navy'
+    if (categoryKey === 'pregnant') badgeClass = 'badge-saffron'
+    else if (categoryKey === 'child') badgeClass = 'badge-teal'
+    else if (categoryKey === 'chronic') badgeClass = 'badge-coral'
+
+    return (
+      <span className={`badge ${badgeClass}`} style={{ fontSize: '0.75rem', textTransform: 'capitalize' }}>
+        {t(`categoryBadges.${categoryKey}`, categoryKey)}
+      </span>
+    )
+  }
+
   return (
-    <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       {/* Toast Alert Banner */}
       {errorMsg && (
         <div className="toast-banner error" role="alert">
@@ -128,24 +149,18 @@ export default function MyPatientsPage() {
         </div>
       )}
 
-      {/* Header bar */}
+      {/* Page Heading & Add Button */}
       <div style={{
-        background: 'var(--color-white)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-card)',
-        padding: '1.25rem 1.5rem',
         display: 'flex',
-        flexWrap: 'wrap',
         justifyContent: 'space-between',
         alignItems: 'center',
-        gap: '1rem',
+        flexWrap: 'wrap',
+        gap: '0.75rem',
       }}>
         <div>
-          <h1 style={{ fontSize: '1.6rem', marginBottom: '0.2rem' }}>
-            {t('patientsPage.title')}
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
-            {t('patientsPage.subtitle')} ({patients.length})
+          <h1 style={{ fontSize: '1.6rem' }}>{t('patientsPage.title')}</h1>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+            {t('patientsPage.subtitle')}
           </p>
         </div>
 
@@ -159,7 +174,7 @@ export default function MyPatientsPage() {
         </Link>
       </div>
 
-      {/* Search and Village Filter Toolbar */}
+      {/* Search and Filters Toolbar */}
       <div style={{
         display: 'flex',
         flexWrap: 'wrap',
@@ -184,14 +199,32 @@ export default function MyPatientsPage() {
           />
         </div>
 
-        {/* Village Filter */}
-        <div style={{ flex: '0 1 200px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        {/* Category Filter */}
+        <div style={{ flex: '0 1 180px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <Filter size={18} color="var(--color-text-muted)" />
+          <select
+            className="select"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            id="select-filter-category"
+            aria-label={t('patientsPage.filterCategory')}
+          >
+            <option value="all">{t('patientsPage.allCategories')}</option>
+            <option value="general">{t('categories.general')}</option>
+            <option value="pregnant">{t('categories.pregnant')}</option>
+            <option value="child">{t('categories.child')}</option>
+            <option value="chronic">{t('categories.chronic')}</option>
+          </select>
+        </div>
+
+        {/* Village Filter */}
+        <div style={{ flex: '0 1 180px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <select
             className="select"
             value={selectedVillage}
             onChange={(e) => setSelectedVillage(e.target.value)}
             id="select-filter-village"
+            aria-label={t('patientsPage.filterVillage')}
           >
             <option value="all">{t('app.actions.allVillages')}</option>
             {villageList.map((village) => (
@@ -246,8 +279,8 @@ export default function MyPatientsPage() {
                   borderTop: '3px solid var(--color-primary)',
                 }}
               >
-                {/* Header: Name and Age badge */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                {/* Header: Name, Location and Category Badge */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
                   <div>
                     <h3 style={{ fontSize: '1.15rem', color: 'var(--color-text)' }}>
                       {patient.name}
@@ -258,9 +291,12 @@ export default function MyPatientsPage() {
                     </div>
                   </div>
 
-                  <span className="badge badge-teal">
-                    {age !== null ? t('patientsPage.ageYears', { age }) : (patient.gender || t('patientsPage.unspecified'))}
-                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
+                    {renderCategoryBadge(patient.category)}
+                    <span className="badge badge-teal" style={{ fontSize: '0.7rem' }}>
+                      {age !== null ? t('patientsPage.ageYears', { age }) : (patient.gender || t('patientsPage.unspecified'))}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Details info lines */}
@@ -291,43 +327,45 @@ export default function MyPatientsPage() {
                 <div style={{
                   display: 'flex',
                   gap: '0.5rem',
-                  marginTop: 'auto',
+                  paddingTop: '0.5rem',
                   borderTop: '1px solid var(--color-border-subtle)',
-                  paddingTop: '0.65rem',
+                  marginTop: 'auto',
                 }}>
-                  {/* View Button */}
                   <button
                     onClick={() => navigate(`/asha/patients/${patient.id}`)}
-                    className="btn btn-outline btn-sm"
+                    className="btn btn-primary btn-sm"
                     style={{ flex: 1 }}
-                    id={`btn-view-${patient.id}`}
+                    title={t('app.actions.view')}
                   >
                     <Eye size={15} />
                     <span>{t('app.actions.view')}</span>
                   </button>
 
-                  {/* Edit Button */}
                   <button
                     onClick={() => navigate(`/asha/patients/${patient.id}/edit`)}
-                    className="btn btn-ghost btn-sm"
-                    style={{ flex: 1, border: '1px solid var(--color-border)' }}
-                    id={`btn-edit-${patient.id}`}
+                    className="btn btn-outline btn-sm"
+                    style={{ padding: '0.4rem 0.65rem' }}
+                    title={t('app.actions.edit')}
                   >
                     <Edit2 size={15} />
                     <span>{t('app.actions.edit')}</span>
                   </button>
 
-                  {/* Delete Button */}
                   <button
                     onClick={() => handleDeletePatient(patient)}
                     disabled={deletingId === patient.id}
                     className="btn btn-danger-outline btn-sm"
-                    style={{ padding: '0.4rem 0.75rem' }}
-                    id={`btn-delete-${patient.id}`}
+                    style={{ padding: '0.4rem 0.65rem' }}
                     title={t('app.actions.delete')}
                   >
-                    <Trash2 size={15} />
-                    <span>{t('app.actions.delete')}</span>
+                    {deletingId === patient.id ? (
+                      <span className="spinner spinner-sm" />
+                    ) : (
+                      <>
+                        <Trash2 size={15} />
+                        <span>{t('app.actions.delete')}</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </Card>

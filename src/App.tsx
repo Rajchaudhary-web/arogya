@@ -6,10 +6,13 @@ import AuthPage from './pages/AuthPage'
 import RootRedirect from './pages/RootRedirect'
 import PatientHome from './pages/PatientHome'
 import PatientRecordsPage from './pages/PatientRecordsPage'
+import PatientMedicinesPage from './pages/PatientMedicinesPage'
+import RequestVisitPage from './pages/RequestVisitPage'
 import AshaDashboard from './pages/AshaDashboard'
 import MyPatientsPage from './pages/MyPatientsPage'
 import AddEditPatientPage from './pages/AddEditPatientPage'
 import AshaPatientDetailPage from './pages/AshaPatientDetailPage'
+import RequestsPage from './pages/RequestsPage'
 import PlaceholderPage from './pages/PlaceholderPage'
 
 export default function App() {
@@ -38,11 +41,11 @@ export default function App() {
             />
             <Route
               path="/medicines"
-              element={<AppLayout><PlaceholderPage /></AppLayout>}
+              element={<AppLayout><PatientMedicinesPage /></AppLayout>}
             />
             <Route
-              path="/checkin"
-              element={<AppLayout><PlaceholderPage /></AppLayout>}
+              path="/ask-visit"
+              element={<AppLayout><RequestVisitPage /></AppLayout>}
             />
             <Route
               path="/ask"
@@ -69,6 +72,10 @@ export default function App() {
             <Route
               path="/asha/patients/:id"
               element={<AppLayout><AshaPatientDetailPage /></AppLayout>}
+            />
+            <Route
+              path="/asha/requests"
+              element={<AppLayout><RequestsPage /></AppLayout>}
             />
 
             {/* Catch-all redirect */}

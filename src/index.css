@@ -558,8 +558,158 @@ label {
   color: var(--color-red);
   border: 1px solid #FCA5A5;
 }
-.toast-banner.success {
-  background: var(--color-green-tint);
-  color: var(--color-green);
-  border: 1px solid #86EFAC;
+/* ── Tabs Navigation ─────────────────────────────────────── */
+.tab-nav-bar {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--color-border);
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0.65rem 1.15rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  border-radius: 8px 8px 0 0;
+  transition: all 140ms ease;
+  white-space: nowrap;
+}
+.tab-btn:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-tint);
+}
+.tab-btn.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  background: var(--color-white);
+}
+
+.badge-saffron { background: var(--color-accent-tint); color: #B45309; }
+.badge-red     { background: var(--color-red-tint);    color: var(--color-red); }
+.badge-amber   { background: var(--color-yellow-tint); color: #B45309; }
+.badge-blue    { background: var(--color-primary-tint); color: var(--color-primary); }
+
+/* ── Patient Request Visit Page Redesign Styles ─────────── */
+.request-visit-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.request-visit-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .request-visit-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 65%) minmax(0, 35%);
+    align-items: flex-start;
+    gap: 1.75rem;
+  }
+}
+
+.reason-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+}
+
+@media (min-width: 1024px) {
+  .reason-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+}
+
+.reason-card-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  min-height: 120px;
+  padding: 1rem 0.85rem;
+  border-radius: 16px;
+  border: 1.5px solid var(--rc-border);
+  background: var(--rc-tint);
+  color: var(--color-text);
+  cursor: pointer;
+  position: relative;
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+  outline: none;
+}
+
+.reason-card-btn:active {
+  transform: scale(0.97);
+}
+
+.reason-card-btn:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.reason-card-btn.selected {
+  background: var(--rc-main) !important;
+  border-color: var(--rc-main) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--rc-main) !important;
+}
+
+.reason-card-btn.selected .reason-title {
+  color: #FFFFFF !important;
+}
+
+.reason-card-btn.selected .reason-desc {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.reason-card-btn.selected .reason-icon-circle {
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: #FFFFFF !important;
+}
+
+.reason-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.reason-check-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  color: var(--rc-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+

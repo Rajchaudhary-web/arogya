@@ -6,11 +6,12 @@ import {
   Home,
   Pill,
   FileText,
-  ClipboardCheck,
   MessageCircle,
   LayoutDashboard,
   Users,
   UserPlus,
+  Inbox,
+  Send,
 } from 'lucide-react'
 
 interface AppLayoutProps {
@@ -22,18 +23,21 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const { profile } = useAuth()
   const isAsha = profile?.role === 'asha'
 
+  // Patient nav: Home, Records, Medicines, Request Visit, Ask Arogya
   const patientNav = [
     { to: '/patient', label: t('app.nav.home'), icon: Home },
-    { to: '/medicines', label: t('app.nav.medicines'), icon: Pill },
     { to: '/records', label: t('app.nav.records'), icon: FileText },
-    { to: '/checkin', label: t('app.nav.checkin'), icon: ClipboardCheck },
+    { to: '/medicines', label: t('app.nav.medicines'), icon: Pill },
+    { to: '/ask-visit', label: t('app.nav.requestVisit'), icon: Send },
     { to: '/ask', label: t('app.nav.ask'), icon: MessageCircle },
   ]
 
+  // ASHA nav: Dashboard, My Patients, Add Patient, Requests
   const ashaNav = [
     { to: '/asha', label: t('app.nav.dashboard'), icon: LayoutDashboard },
     { to: '/asha/patients', label: t('app.nav.myPatients'), icon: Users },
     { to: '/asha/patients/add', label: t('app.nav.addPatient'), icon: UserPlus },
+    { to: '/asha/requests', label: t('app.nav.requests'), icon: Inbox },
   ]
 
   const navItems = isAsha ? ashaNav : patientNav
@@ -59,7 +63,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         : isActive
                     return `sidebar-nav-item ${isCurrent ? 'active' : ''}`
                   }}
-                  end={item.to === '/patient' || item.to === '/asha' || item.to === '/asha/patients/add'}
+                  end={
+                    item.to === '/patient' ||
+                    item.to === '/asha' ||
+                    item.to === '/asha/patients/add' ||
+                    item.to === '/asha/requests' ||
+                    item.to === '/ask-visit'
+                  }
                 >
                   <Icon size={20} />
                   <span>{item.label}</span>
@@ -90,7 +100,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     : isActive
                 return `mobile-tab-item ${isCurrent ? 'active' : ''}`
               }}
-              end={item.to === '/patient' || item.to === '/asha' || item.to === '/asha/patients/add'}
+              end={
+                item.to === '/patient' ||
+                item.to === '/asha' ||
+                item.to === '/asha/patients/add' ||
+                item.to === '/asha/requests' ||
+                item.to === '/ask-visit'
+              }
             >
               <Icon size={22} />
               <span>{item.label}</span>

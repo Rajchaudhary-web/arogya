@@ -12,7 +12,9 @@
       "ask": "Ask Arogya",
       "dashboard": "Dashboard",
       "myPatients": "My Patients",
-      "addPatient": "Add Patient"
+      "addPatient": "Add Patient",
+      "requests": "Requests",
+      "requestVisit": "Request Visit"
     },
     "actions": {
       "save": "Save",
@@ -44,7 +46,7 @@
     "signup": "Sign Up",
     "role": "I am a...",
     "rolePatient": "Patient",
-    "rolePatientDesc": "I need health records and reminders",
+    "rolePatientDesc": "I need my health records and ASHA support",
     "roleAsha": "ASHA Worker",
     "roleAshaDesc": "I help my community",
     "fullName": "Full Name",
@@ -151,7 +153,9 @@
     "filterVillage": "Filter by village",
     "noFiltered": "No patients match your search criteria.",
     "ageYears": "{{age}} yrs",
-    "unspecified": "N/A"
+    "unspecified": "N/A",
+    "filterCategory": "Filter by Category",
+    "allCategories": "All Categories"
   },
   "addPatient": {
     "title": "Register New Patient",
@@ -173,7 +177,13 @@
       "birthDetails": "Birth Details / Notes",
       "saveBtn": "Register Patient",
       "updateBtn": "Update Patient",
-      "cancelBtn": "Cancel"
+      "cancelBtn": "Cancel",
+      "category": "Patient Category",
+      "guardian": "Guardian (Mother)",
+      "selectGuardian": "— Select Registered Mother —",
+      "edd": "Expected Delivery Date (EDD)",
+      "deliveryHospital": "Planned / Delivery Hospital",
+      "deliveryDate": "Actual Delivery Date (if delivered)"
     },
     "validation": {
       "nameRequired": "Patient full name is required",
@@ -207,7 +217,13 @@
       "update": "Update Record"
     },
     "emptyTimeline": "No history entries added yet.",
-    "emptyTimelineSub": "Add vaccines, clinic visits, prescriptions, and health observations above."
+    "emptyTimelineSub": "Add vaccines, clinic visits, prescriptions, and health observations above.",
+    "tabs": {
+      "timeline": "Overview & Timeline",
+      "medicines": "Medicines",
+      "tracker": "Schedule Tracker",
+      "visits": "Home Visits"
+    }
   },
   "placeholder": {
     "comingSoonDesc": "This feature is under active development. Stay tuned!",
@@ -215,5 +231,219 @@
     "medicinesDesc": "Track active prescriptions, dosage timings, and medicine refill alerts.",
     "checkinDesc": "Log daily symptoms, vital readings, and health check-in questionnaires.",
     "askDesc": "AI-powered voice and text health guidance in your local language."
+  },
+  "categories": {
+    "general": "General",
+    "pregnant": "Pregnant Woman",
+    "child": "Child",
+    "chronic": "Chronic Care"
+  },
+  "categoryBadges": {
+    "general": "General",
+    "pregnant": "Pregnant",
+    "child": "Child",
+    "chronic": "Chronic"
+  },
+  "medicines": {
+    "title": "Prescribed Medicines",
+    "subtitle": "Plain record of active and past medications",
+    "addBtn": "Add Medicine",
+    "editBtn": "Edit Medicine",
+    "name": "Medicine Name",
+    "dose": "Dose (e.g. 500mg, 1 tablet)",
+    "instructions": "Instructions (e.g. After meals twice daily)",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Discontinued",
+    "saveBtn": "Save Medicine",
+    "empty": "No medicines recorded yet.",
+    "emptySub": "Record prescriptions and medications for this patient."
+  },
+  "tracker": {
+    "childTitle": "Immunization Schedule (National Schedule)",
+    "pregnantTitle": "Maternal Care Checklist (ANC & PNC)",
+    "otherTitle": "Health Care Follow-up",
+    "markGiven": "Mark Given",
+    "markDone": "Mark Done",
+    "undo": "Undo",
+    "givenOn": "Given On",
+    "doneOn": "Done On",
+    "notes": "Notes (optional)",
+    "dueDate": "Due Date",
+    "deadline": "Deadline",
+    "status": {
+      "given": "Given / Done",
+      "overdue": "Overdue",
+      "due_this_week": "Due This Week",
+      "upcoming": "Upcoming"
+    },
+    "generalNote": "Routine community health tracking and follow-up.",
+    "chronicNote": "Ongoing non-communicable disease (NCD) and hypertension/diabetes monitoring.",
+    "nextFollowUp": "Scheduled Next Follow-up Visit",
+    "noFollowUpScheduled": "No follow-up visit currently scheduled.",
+    "noEddSet": "Please set Expected Delivery Date (EDD) in patient profile to generate ANC/PNC schedule deadlines.",
+    "noDobSet": "Please set Date of Birth in patient profile to calculate child immunization due dates.",
+    "anc": {
+      "anc1": "ANC 1 (First Trimester)",
+      "anc2": "ANC 2 (Second Trimester)",
+      "anc3": "ANC 3 (Third Trimester)",
+      "anc4": "ANC 4 (Pre-delivery Checkup)"
+    },
+    "pnc": {
+      "pnc3": "PNC Day 3 Visit",
+      "pnc7": "PNC Day 7 Visit",
+      "pnc42": "PNC 6-Week Visit (Day 42)"
+    }
+  },
+  "visits": {
+    "title": "Home Visits & Vital Monitoring",
+    "addVisit": "Record Home Visit",
+    "visitDate": "Visit Date",
+    "purpose": "Visit Purpose",
+    "purposes": {
+      "routine": "Routine Check-in",
+      "anc": "Antenatal Care (ANC)",
+      "pnc": "Postnatal Care (PNC)",
+      "immunization": "Immunization Follow-up",
+      "chronic_followup": "Chronic Disease Follow-up",
+      "fever_illness": "Fever & Acute Illness",
+      "other": "Other Support"
+    },
+    "notes": "Clinical Observations / Advice",
+    "bpSystolic": "BP Systolic (mmHg)",
+    "bpDiastolic": "BP Diastolic (mmHg)",
+    "weightKg": "Weight (kg)",
+    "sugarMgdl": "Blood Sugar (mg/dL)",
+    "nextVisitDate": "Next Follow-up Date",
+    "referPhc": "Refer to PHC / Hospital",
+    "referSuggestedNotice": "Vitals exceed threshold (BP >= 140/90 or Sugar >= 200). PHC referral recommended.",
+    "empty": "No home visits recorded yet.",
+    "emptySub": "Record community home visits, vital signs, and PHC referrals."
+  },
+  "dashboard": {
+    "title": "ASHA Care Dashboard",
+    "subtitle": "Community health priorities, scheduled visits & requests",
+    "cards": {
+      "totalPatients": "Total Patients",
+      "overdue": "Overdue Milestones",
+      "dueThisWeek": "Due This Week",
+      "openRequests": "Open Requests"
+    },
+    "sections": {
+      "requests": "Visit Requests",
+      "requestsSub": "Pending help and home visit requests from community members",
+      "overdue": "Overdue Follow-ups & Milestones",
+      "overdueSub": "Vaccines, ANC checkups, and visits requiring immediate attention",
+      "dueThisWeek": "Due This Week",
+      "dueThisWeekSub": "Scheduled immunization and care visits for the next 7 days",
+      "highRisk": "Refer / High-Risk Patients",
+      "highRiskSub": "Patients flagged with elevated vitals or recommended for PHC referral",
+      "recentUploads": "Recent Patient Uploads",
+      "recentUploadsSub": "Prescriptions and lab reports added by patients in the last 7 days"
+    },
+    "daysLate": "{{count}} days overdue",
+    "markSeen": "Mark Seen",
+    "markDone": "Mark Done",
+    "viewPatient": "View Patient",
+    "callPatient": "Call",
+    "noRequests": "No open visit requests right now.",
+    "noOverdue": "No overdue milestones or follow-ups. All up to date!",
+    "noDueThisWeek": "No scheduled milestones due this week.",
+    "noHighRisk": "No high-risk or PHC-referred patients recorded.",
+    "noRecentUploads": "No new uploads from patients in the last 7 days."
+  },
+  "requestsPage": {
+    "title": "Community Visit Requests",
+    "subtitle": "Patient-submitted visit requests and assistance requests",
+    "filterStatus": "Filter by Status",
+    "allStatuses": "All Requests",
+    "statusOpen": "Open",
+    "statusSeen": "Seen",
+    "statusDone": "Resolved",
+    "empty": "No visit requests found.",
+    "reasonLabel": "Reason",
+    "resolvedAt": "Resolved at: {{date}}",
+    "reasons": {
+      "fever": "Fever & Acute Illness",
+      "pregnancy_problem": "Pregnancy Complication / Issue",
+      "child_unwell": "Child Unwell",
+      "need_supplies": "Need Supplies / Refill",
+      "other": "Other Inquiry"
+    }
+  },
+  "patientHome": {
+    "whatsNext": "What’s Next for You & Your Family",
+    "whatsNextSub": "Upcoming vaccines, antenatal checkups, and home health visits",
+    "nothingDue": "Nothing due right now.",
+    "callAsha": "Call my ASHA didi ({{name}})",
+    "callAshaBtn": "Call ASHA Didi",
+    "ashaNotLinked": "Your ASHA worker has not been linked yet.",
+    "requestVisitBtn": "Request a Visit",
+    "myChildren": "My Children",
+    "myChildrenSub": "Vaccination progress and next scheduled doses for your children",
+    "nextVaccineDue": "Next vaccine due",
+    "allVaccinesDone": "All scheduled vaccines up to date",
+    "healthTips": "Health Guidance & Care Tips",
+    "categoryTips": {
+      "child": [
+        "Exclusive breastfeeding for the first 6 months provides ideal nutrition and immunity for your baby.",
+        "Ensure complete and timely immunizations according to the national schedule to protect against major childhood diseases.",
+        "During diarrhea, start ORS solution immediately along with zinc supplements to prevent dehydration.",
+        "Practice regular handwashing with soap before feeding your child and after using the toilet."
+      ],
+      "pregnant": [
+        "Take iron-folic acid (IFA) tablets daily after meals to prevent anemia and ensure healthy fetal growth.",
+        "Eat nutrient-rich foods including green leafy vegetables, milk, lentils, and seasonal fruits regularly.",
+        "Complete all 4 recommended antenatal care (ANC) checkups with your ASHA worker and PHC.",
+        "Watch for danger signs: severe headache, blurred vision, swelling of hands/face, or vaginal bleeding — contact your ASHA immediately."
+      ],
+      "chronic": [
+        "Take your prescribed blood pressure and diabetes medicines regularly without skipping doses.",
+        "Reduce salt, sugar, and processed foods in your daily meals; drink plenty of clean water.",
+        "Engage in 30 minutes of brisk walking or light exercise daily to support heart and blood sugar control.",
+        "Attend regular health checkups and monitor blood pressure and blood sugar at your nearest sub-center."
+      ],
+      "general": [
+        "Maintain personal hygiene and wash hands thoroughly with soap before meals and food preparation.",
+        "Drink clean, boiled, or filtered water to protect against waterborne infections and typhoid.",
+        "Eat a colorful, balanced diet with local grains, pulses, and seasonal fresh vegetables.",
+        "Contact your local ASHA worker promptly if anyone in your household experiences persistent fever or cough."
+      ]
+    }
+  },
+  "patientMedicines": {
+    "title": "My Prescribed Medicines",
+    "subtitle": "Plain record of active and past medications prescribed by your healthcare provider",
+    "activeList": "Active Prescriptions",
+    "inactiveList": "Past / Discontinued Medications",
+    "empty": "No medicines recorded yet.",
+    "emptySub": "Your prescribed medications will appear here once recorded by your health worker.",
+    "dose": "Dose",
+    "instructions": "Instructions"
+  },
+  "requestVisitPage": {
+    "title": "Request a Health Visit",
+    "subtitle": "Notify your ASHA worker if you or someone in your family needs a home visit or assistance",
+    "whoIsItFor": "Who is this request for?",
+    "forMyself": "For Myself ({{name}})",
+    "selectReason": "Select Reason for Visit",
+    "optionalMessage": "Message or Details (Optional)",
+    "messagePlaceholder": "Describe symptoms, concerns, or what supplies you need...",
+    "sendBtn": "Send Request to ASHA Didi",
+    "sending": "Sending request...",
+    "pastRequests": "My Past Visit Requests",
+    "pastRequestsSub": "Status and history of your submitted visit requests",
+    "emptyPast": "You have not submitted any visit requests yet.",
+    "successBanner": "Request sent to your ASHA didi",
+    "badge": "Quick Visit Request",
+    "yourAsha": "Your ASHA Didi",
+    "callAsha": "Call ASHA Didi",
+    "reasonHelpers": {
+      "fever": "High body temperature, chills, body ache or acute illness",
+      "pregnancy_problem": "Severe pain, bleeding, headache, swelling or dizziness",
+      "child_unwell": "Feeding difficulty, persistent crying, cough or diarrhea",
+      "need_supplies": "Iron tablets (IFA), ORS packets, bandages or refills",
+      "other": "General consultation, checkup query or home advice"
+    }
   }
 }

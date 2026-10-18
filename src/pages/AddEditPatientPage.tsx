@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import Card from '../components/Card'
+import type { PatientCategory, Patient } from '../lib/types'
 import {
   ArrowLeft,
   ShieldAlert,
@@ -27,10 +28,42 @@ export default function AddEditPatientPage() {
   const [allergies, setAllergies] = useState('')
   const [birthDetails, setBirthDetails] = useState('')
 
+  // Phase 3 Category & Special Fields
+  const [category, setCategory] = useState<PatientCategory>('general')
+  const [guardianPatientId, setGuardianPatientId] = useState<string>('')
+  const [edd, setEdd] = useState<string>('')
+  const [deliveryHospital, setDeliveryHospital] = useState<string>('')
+  const [deliveryDate, setDeliveryDate] = useState<string>('')
+
+  // Mother candidates for guardian dropdown
+  const [motherList, setMotherList] = useState<Patient[]>([])
+
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(isEditing)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+
+  // Fetch list of patients for guardian (mother) selection
+  useEffect(() => {
+    if (!user) return
+    const fetchMothers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('patients')
+          .select('id, name, village, category, phone')
+          .eq('asha_id', user.id)
+          .order('name', { ascending: true })
+
+        if (!error && data) {
+          // Filter out the current patient being edited to avoid circular self-reference
+          setMotherList(data.filter((p) => p.id !== id))
+        }
+      } catch (err) {
+        console.error('Error fetching mother options:', err)
+      }
+    }
+    fetchMothers()
+  }, [user, id])
 
   useEffect(() => {
     if (isEditing && id) {
@@ -52,6 +85,11 @@ export default function AddEditPatientPage() {
             setBloodGroup(data.blood_group || '')
             setAllergies(data.allergies || '')
             setBirthDetails(data.birth_details || '')
+            setCategory((data.category as PatientCategory) || 'general')
+            setGuardianPatientId(data.guardian_patient_id || '')
+            setEdd(data.edd ? data.edd.substring(0, 10) : '')
+            setDeliveryHospital(data.delivery_hospital || '')
+            setDeliveryDate(data.delivery_date ? data.delivery_date.substring(0, 10) : '')
           }
         } catch (err: any) {
           console.error('Error fetching patient to edit:', err)
@@ -78,7 +116,7 @@ export default function AddEditPatientPage() {
     setLoading(true)
 
     try {
-      const payload = {
+      const payload: Record<string, any> = {
         name: fullName.trim(),
         dob: dob ? dob : null,
         gender: gender || null,
@@ -87,6 +125,11 @@ export default function AddEditPatientPage() {
         blood_group: bloodGroup.trim() || null,
         allergies: allergies.trim() || null,
         birth_details: birthDetails.trim() || null,
+        category: category || 'general',
+        guardian_patient_id: category === 'child' && guardianPatientId ? guardianPatientId : null,
+        edd: category === 'pregnant' && edd ? edd : null,
+        delivery_hospital: category === 'pregnant' && deliveryHospital.trim() ? deliveryHospital.trim() : null,
+        delivery_date: category === 'pregnant' && deliveryDate ? deliveryDate : null,
       }
 
       if (isEditing && id) {
@@ -180,6 +223,103 @@ export default function AddEditPatientPage() {
               placeholder="e.g. सुनीता देवी / Sunita Devi"
             />
           </div>
+
+          {/* Category Selector (4 Options) */}
+          <div>
+            <label htmlFor="field-category">{t('addPatient.form.category')} *</label>
+            <select
+              id="field-category"
+              className="select"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as PatientCategory)}
+              required
+            >
+              <option value="general">{t('categories.general')}</option>
+              <option value="pregnant">{t('categories.pregnant')}</option>
+              <option value="child">{t('categories.child')}</option>
+              <option value="chronic">{t('categories.chronic')}</option>
+            </select>
+          </div>
+
+          {/* Conditional Fields: Child -> Guardian (Mother) */}
+          {category === 'child' && (
+            <div style={{
+              background: 'var(--color-teal-tint)',
+              border: '1px solid var(--color-teal)',
+              borderRadius: '10px',
+              padding: '0.85rem',
+            }}>
+              <label htmlFor="field-guardian" style={{ color: 'var(--color-teal)' }}>
+                {t('addPatient.form.guardian')}
+              </label>
+              <select
+                id="field-guardian"
+                className="select"
+                value={guardianPatientId}
+                onChange={(e) => setGuardianPatientId(e.target.value)}
+              >
+                <option value="">{t('addPatient.form.selectGuardian')}</option>
+                {motherList.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} {m.village ? `(${m.village})` : ''} {m.category ? `[${m.category}]` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Conditional Fields: Pregnant -> EDD, Delivery Hospital, Delivery Date */}
+          {category === 'pregnant' && (
+            <div style={{
+              background: 'var(--color-accent-tint)',
+              border: '1px solid var(--color-accent)',
+              borderRadius: '10px',
+              padding: '0.85rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.85rem',
+            }}>
+              <div>
+                <label htmlFor="field-edd" style={{ color: 'var(--color-accent)' }}>
+                  {t('addPatient.form.edd')} *
+                </label>
+                <input
+                  id="field-edd"
+                  type="date"
+                  className="input"
+                  value={edd}
+                  onChange={(e) => setEdd(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="field-delivery-hospital" style={{ color: 'var(--color-accent)' }}>
+                  {t('addPatient.form.deliveryHospital')}
+                </label>
+                <input
+                  id="field-delivery-hospital"
+                  type="text"
+                  className="input"
+                  value={deliveryHospital}
+                  onChange={(e) => setDeliveryHospital(e.target.value)}
+                  placeholder="e.g. Community Health Centre (CHC) / Civil Hospital"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="field-delivery-date" style={{ color: 'var(--color-accent)' }}>
+                  {t('addPatient.form.deliveryDate')}
+                </label>
+                <input
+                  id="field-delivery-date"
+                  type="date"
+                  className="input"
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
 
           {/* DOB & Gender */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>

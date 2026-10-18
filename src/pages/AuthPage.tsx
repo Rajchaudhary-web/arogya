@@ -152,18 +152,27 @@ export default function AuthPage() {
                     onClick={() => setRole('patient')}
                     id="role-patient"
                     aria-pressed={role === 'patient'}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      textAlign: 'center',
+                    }}
                   >
                     <div style={{
                       width: '44px', height: '44px', borderRadius: '50%',
                       background: role === 'patient' ? 'var(--color-primary)' : 'var(--color-primary-tint)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      marginBottom: '0.4rem',
                     }}>
                       <User size={22} color={role === 'patient' ? '#fff' : 'var(--color-primary)'} />
                     </div>
-                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{t('auth.rolePatient')}</span>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.25rem' }}>
+                      {t('auth.rolePatient')}
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.35 }}>
                       {t('auth.rolePatientDesc')}
-                    </span>
+                    </div>
                   </button>
 
                   {/* ASHA Worker */}
@@ -173,18 +182,27 @@ export default function AuthPage() {
                     onClick={() => setRole('asha')}
                     id="role-asha"
                     aria-pressed={role === 'asha'}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      textAlign: 'center',
+                    }}
                   >
                     <div style={{
                       width: '44px', height: '44px', borderRadius: '50%',
                       background: role === 'asha' ? 'var(--color-accent)' : 'var(--color-accent-tint)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      marginBottom: '0.4rem',
                     }}>
                       <Stethoscope size={22} color={role === 'asha' ? '#fff' : 'var(--color-accent)'} />
                     </div>
-                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{t('auth.roleAsha')}</span>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.25rem' }}>
+                      {t('auth.roleAsha')}
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.35 }}>
                       {t('auth.roleAshaDesc')}
-                    </span>
+                    </div>
                   </button>
                 </div>
               </div>
