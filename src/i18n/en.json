@@ -445,5 +445,24 @@
       "need_supplies": "Iron tablets (IFA), ORS packets, bandages or refills",
       "other": "General consultation, checkup query or home advice"
     }
+  },
+  "chat": {
+    "title": "Ask Arogya | आरोग्य साथी",
+    "subtitle": "Your personal AI health assistant for guidance and care info",
+    "badge": "AI Assistant",
+    "disclaimer": "Arogya Saathi gives general information only. It is not a doctor.",
+    "inputPlaceholder": "Ask a health question or inquiry...",
+    "send": "Send",
+    "sending": "Thinking...",
+    "suggestionsTitle": "Suggested Questions:",
+    "suggestions": {
+      "whatsNext": "What is next for me?",
+      "medicines": "My medicines",
+      "whoIsAsha": "Who is my ASHA?"
+    },
+    "initialGreeting": "Namaste {{name}}! I am Arogya Saathi, your health guide. You can ask me about your scheduled vaccines, antenatal visits, active medicines, or ASHA worker details.",
+    "errorMsg": "Could not connect to the health assistant. Please check your connection and retry.",
+    "retry": "Retry",
+    "clearChat": "Clear Chat"
   }
 }

@@ -203,9 +203,8 @@ export default function RequestsPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.75rem',
-                  borderLeft: `5px solid ${
-                    isOpen ? 'var(--color-coral)' : isSeen ? 'var(--color-yellow)' : 'var(--color-green)'
-                  }`,
+                  borderLeft: `5px solid ${isOpen ? 'var(--color-coral)' : isSeen ? 'var(--color-yellow)' : 'var(--color-green)'
+                    }`,
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -214,9 +213,8 @@ export default function RequestsPage() {
                       <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-text)' }}>
                         {req.patientName}
                       </span>
-                      <span className={`badge ${
-                        isOpen ? 'badge-coral' : isSeen ? 'badge-yellow' : 'badge-green'
-                      }`} style={{ textTransform: 'capitalize' }}>
+                      <span className={`badge ${isOpen ? 'badge-coral' : isSeen ? 'badge-yellow' : 'badge-green'
+                        }`} style={{ textTransform: 'capitalize' }}>
                         {t(`requestsPage.status${req.status.charAt(0).toUpperCase() + req.status.slice(1)}`, req.status)}
                       </span>
                     </div>

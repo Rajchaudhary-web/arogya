@@ -13,7 +13,7 @@ import MyPatientsPage from './pages/MyPatientsPage'
 import AddEditPatientPage from './pages/AddEditPatientPage'
 import AshaPatientDetailPage from './pages/AshaPatientDetailPage'
 import RequestsPage from './pages/RequestsPage'
-import PlaceholderPage from './pages/PlaceholderPage'
+import AskArogyaPage from './pages/AskArogyaPage'
 
 export default function App() {
   return (
@@ -49,7 +49,7 @@ export default function App() {
             />
             <Route
               path="/ask"
-              element={<AppLayout><PlaceholderPage /></AppLayout>}
+              element={<AppLayout><AskArogyaPage /></AppLayout>}
             />
 
             {/* ASHA Worker Routes */}
