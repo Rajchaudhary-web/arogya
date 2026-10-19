@@ -13,6 +13,7 @@ import type {
 import {
   calculateBatchedDashboardMetrics,
 } from '../lib/schedule'
+import { isEmergency } from '../lib/emergency'
 import {
   Send,
   Sparkles,
@@ -21,6 +22,10 @@ import {
   Bot,
   User,
   ShieldAlert,
+  Phone,
+  Clock,
+  Eye,
+  CheckCheck,
 } from 'lucide-react'
 
 interface ChatMessage {
@@ -58,9 +63,63 @@ export default function AskArogyaPage() {
   const [inputText, setInputText] = useState('')
   const [loadingContext, setLoadingContext] = useState(true)
   const [patientContext, setPatientContext] = useState<PatientChatContext | null>(null)
+  const [patientId, setPatientId] = useState<string | null>(null)
   const [isSending, setIsSending] = useState(false)
   const [errorState, setErrorState] = useState<string | null>(null)
   const [lastUserMessage, setLastUserMessage] = useState<string | null>(null)
+
+  // Emergency safety rail state
+  const [emergencyActive, setEmergencyActive] = useState(false)
+  const [emergencyRequestId, setEmergencyRequestId] = useState<string | null>(null)
+  const [emergencyStatus, setEmergencyStatus] = useState<string | null>(null)
+  const [emergencyAlertSuccess, setEmergencyAlertSuccess] = useState(false)
+  const [emergencyAlertError, setEmergencyAlertError] = useState<string | null>(null)
+  const lastEmergencyAlertTimeRef = useRef<number>(0)
+
+  // ── Emergency Status Polling (every 15s + on window focus, stop when done or unmounted) ──
+  useEffect(() => {
+    if (!emergencyActive || !emergencyRequestId || emergencyStatus === 'done') {
+      return
+    }
+
+    let isMounted = true
+
+    const fetchLatestStatus = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('visit_requests')
+          .select('id, status')
+          .eq('id', emergencyRequestId)
+          .maybeSingle()
+
+        if (error) {
+          // Handle fetch errors quietly (keep last known status)
+          return
+        }
+
+        if (data && isMounted) {
+          setEmergencyStatus(data.status)
+        }
+      } catch {
+        // Handle quietly
+      }
+    }
+
+    // Set interval for every 15s
+    const intervalId = setInterval(fetchLatestStatus, 15000)
+
+    // Also re-fetch when browser tab regains focus
+    const handleFocus = () => {
+      fetchLatestStatus()
+    }
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      isMounted = false
+      clearInterval(intervalId)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [emergencyActive, emergencyRequestId, emergencyStatus])
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
@@ -70,7 +129,7 @@ export default function AskArogyaPage() {
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages, isSending])
+  }, [messages, isSending, emergencyActive])
 
   // ── Build Context on client from patient data ────────────────
   useEffect(() => {
@@ -94,6 +153,7 @@ export default function AskArogyaPage() {
         }
 
         const selfPatient: Patient = pData
+        setPatientId(selfPatient.id)
 
         // 2. Fetch ASHA profile via patients.asha_id -> profiles(id, full_name, phone)
         let ashaInfo: { name: string | null; phone: string | null } = { name: null, phone: null }
@@ -217,7 +277,7 @@ export default function AskArogyaPage() {
     buildContext()
   }, [user])
 
-  // ── Send Message via supabase.functions.invoke ───────────────
+  // ── Send Message with Emergency Safety Rail ───────────────────
   const sendMessage = async (textToSend: string) => {
     const cleanText = textToSend.trim()
     if (!cleanText || isSending) return
@@ -225,12 +285,62 @@ export default function AskArogyaPage() {
     setErrorState(null)
     setLastUserMessage(cleanText)
 
-    // Build new message history, capping at the last 8 messages
+    // Add user message to UI bubbles immediately
     const userMsg: ChatMessage = { role: 'user', text: cleanText }
     const updatedMessages: ChatMessage[] = [...messages, userMsg].slice(-8)
-
     setMessages(updatedMessages)
     setInputText('')
+
+    // ── Emergency Check: pure function isEmergency BEFORE any assistant call ──
+    if (isEmergency(cleanText)) {
+      setEmergencyActive(true)
+      setIsSending(false)
+
+      const now = Date.now()
+      const TWO_MINUTES_MS = 2 * 60 * 1000
+
+      // Only insert visit_requests if not duplicate within 2 minutes
+      if (now - lastEmergencyAlertTimeRef.current >= TWO_MINUTES_MS) {
+        lastEmergencyAlertTimeRef.current = now
+        try {
+          if (patientId) {
+            const { data: insertedData, error: insertErr } = await supabase
+              .from('visit_requests')
+              .insert({
+                patient_id: patientId,
+                reason: 'other',
+                message: `URGENT (assistant): ${cleanText}`,
+                status: 'open',
+                urgent: true,
+              })
+              .select('id, status')
+              .maybeSingle()
+
+            if (insertErr) {
+              console.error('Failed to insert urgent visit request:', insertErr)
+              setEmergencyAlertError(t('chat.emergencyAlertFailed'))
+              setEmergencyAlertSuccess(false)
+            } else {
+              if (insertedData) {
+                setEmergencyRequestId(insertedData.id)
+                setEmergencyStatus(insertedData.status || 'open')
+              }
+              setEmergencyAlertSuccess(true)
+              setEmergencyAlertError(null)
+            }
+          }
+        } catch (err: any) {
+          console.error('Emergency request insert error:', err)
+          setEmergencyAlertError(t('chat.emergencyAlertFailed'))
+          setEmergencyAlertSuccess(false)
+        }
+      }
+
+      // Do NOT call the assistant function
+      return
+    }
+
+    // Normal non-emergency assistant flow
     setIsSending(true)
 
     try {
@@ -405,6 +515,146 @@ export default function AskArogyaPage() {
                 <RotateCcw size={15} />
                 <span>{t('chat.retry')}</span>
               </button>
+            </div>
+          )}
+
+          {/* Red Emergency Safety Rail Card */}
+          {emergencyActive && (
+            <div className="emergency-card" id="chat-emergency-card">
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <div style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: '#FEE2E2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#DC2626',
+                  flexShrink: 0,
+                }}>
+                  <ShieldAlert size={22} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{
+                    margin: '0 0 0.25rem 0',
+                    fontSize: '1.15rem',
+                    fontWeight: 800,
+                    color: '#991B1B',
+                  }}>
+                    {t('chat.emergencyAlertTitle')}
+                  </h3>
+                  <p style={{
+                    margin: 0,
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    color: '#7F1D1D',
+                  }}>
+                    {t('chat.emergencyText')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Call Buttons */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
+              }}>
+                {/* Call ASHA didi (hidden if no ASHA linked) */}
+                {patientContext?.asha.phone && (
+                  <a
+                    href={`tel:${patientContext.asha.phone}`}
+                    className="emergency-btn-asha"
+                    id="btn-emergency-call-asha"
+                  >
+                    <Phone size={20} />
+                    <span>
+                      {t('chat.emergencyCallAsha', {
+                        name: patientContext.asha.name || 'ASHA',
+                      })}
+                    </span>
+                  </a>
+                )}
+
+                {/* Call 108 */}
+                <a
+                  href="tel:108"
+                  className="emergency-btn-108"
+                  id="btn-emergency-call-108"
+                >
+                  <Phone size={20} />
+                  <span>{t('chat.emergencyCall108')}</span>
+                </a>
+              </div>
+
+              {/* Live Status line with icon + text (open, seen, done) */}
+              {emergencyAlertSuccess && (
+                <div
+                  id="emergency-card-live-status"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.6rem',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    borderRadius: '8px',
+                    padding: '0.6rem 0.85rem',
+                    background:
+                      emergencyStatus === 'done'
+                        ? 'var(--color-green-tint)'
+                        : emergencyStatus === 'seen'
+                        ? 'var(--color-yellow-tint)'
+                        : 'var(--color-primary-tint)',
+                    color:
+                      emergencyStatus === 'done'
+                        ? 'var(--color-green)'
+                        : emergencyStatus === 'seen'
+                        ? '#B48200'
+                        : 'var(--color-primary)',
+                    border: `1px solid ${
+                      emergencyStatus === 'done'
+                        ? '#86EFAC'
+                        : emergencyStatus === 'seen'
+                        ? '#FDE047'
+                        : '#BFDBFE'
+                    }`,
+                  }}
+                >
+                  {emergencyStatus === 'done' ? (
+                    <CheckCheck size={18} />
+                  ) : emergencyStatus === 'seen' ? (
+                    <Eye size={18} />
+                  ) : (
+                    <Clock size={18} />
+                  )}
+                  <span>
+                    {emergencyStatus === 'done'
+                      ? t('chat.emergencyStatusDone')
+                      : emergencyStatus === 'seen'
+                      ? t('chat.emergencyStatusSeen')
+                      : t('chat.emergencyStatusOpen')}
+                  </span>
+                </div>
+              )}
+
+              {emergencyAlertError && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  color: '#B91C1C',
+                  background: '#FEE2E2',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '8px',
+                }}>
+                  <AlertCircle size={16} />
+                  <span>{emergencyAlertError}</span>
+                </div>
+              )}
             </div>
           )}
 

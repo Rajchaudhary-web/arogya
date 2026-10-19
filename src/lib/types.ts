@@ -108,6 +108,7 @@ export interface VisitRequest {
   created_by?: string
   created_at?: string
   resolved_at?: string | null
+  urgent?: boolean
 }
 
 export type HistoryEntryType =

@@ -463,6 +463,15 @@
     "initialGreeting": "Namaste {{name}}! I am Arogya Saathi, your health guide. You can ask me about your scheduled vaccines, antenatal visits, active medicines, or ASHA worker details.",
     "errorMsg": "Could not connect to the health assistant. Please check your connection and retry.",
     "retry": "Retry",
-    "clearChat": "Clear Chat"
+    "clearChat": "Clear Chat",
+    "emergencyAlertTitle": "Emergency Detected",
+    "emergencyText": "If this is an emergency, call now.",
+    "emergencyCallAsha": "Call ASHA Didi ({{name}})",
+    "emergencyCall108": "Call 108 (Ambulance)",
+    "emergencyAshaAlerted": "Your ASHA has been alerted",
+    "emergencyAlertFailed": "Could not automatically alert ASHA. Please call directly.",
+    "emergencyStatusOpen": "Your ASHA has been alerted",
+    "emergencyStatusSeen": "Your ASHA has seen your request",
+    "emergencyStatusDone": "Your ASHA has marked this as handled"
   }
 }
