@@ -172,6 +172,170 @@ export default function RequestsPage() {
         </div>
       </div>
 
+      {/* ── Urgent Requests Section (status 'open' & urgent = true) ── */}
+      {(() => {
+        const urgentOpen = requests.filter((r) => r.urgent === true && r.status === 'open')
+        if (urgentOpen.length === 0) return null
+
+        return (
+          <section
+            id="requests-urgent-section"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+              background: '#FEF2F2',
+              border: '2px solid #EF4444',
+              borderRadius: '16px',
+              padding: '1.25rem',
+              boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: '#FEE2E2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#DC2626',
+                  flexShrink: 0,
+                }}
+              >
+                <ShieldAlert size={22} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', margin: 0, color: '#991B1B', fontWeight: 800 }}>
+                  {t('urgentSection.title')} ({urgentOpen.length})
+                </h2>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#7F1D1D' }}>
+                  {t('urgentSection.sub')}
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {urgentOpen.map((req) => (
+                <Card
+                  key={req.id}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '0.85rem',
+                    borderLeft: '6px solid #DC2626',
+                    background: '#FFFFFF',
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: '220px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 800, fontSize: '1.1rem', color: '#991B1B' }}>
+                        {req.patientName}
+                      </span>
+                      <span
+                        className="badge badge-coral"
+                        style={{
+                          background: '#FEE2E2',
+                          color: '#DC2626',
+                          fontWeight: 700,
+                          border: '1px solid #FCA5A5',
+                        }}
+                      >
+                        {t('urgentSection.badge')}
+                      </span>
+                    </div>
+
+                    {req.message && (
+                      <p
+                        style={{
+                          fontSize: '0.95rem',
+                          color: 'var(--color-text)',
+                          marginTop: '0.35rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {req.message}
+                      </p>
+                    )}
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        fontSize: '0.8rem',
+                        color: 'var(--color-text-muted)',
+                        marginTop: '0.35rem',
+                      }}
+                    >
+                      <Clock size={13} />
+                      <span>{req.created_at ? new Date(req.created_at).toLocaleString() : ''}</span>
+                      {req.patientVillage && (
+                        <>
+                          <span>•</span>
+                          <span>{req.patientVillage}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    {req.patientPhone && (
+                      <a
+                        href={`tel:${req.patientPhone}`}
+                        className="btn btn-primary"
+                        style={{
+                          background: '#DC2626',
+                          borderColor: '#DC2626',
+                          color: '#FFFFFF',
+                          minHeight: '44px',
+                          padding: '0.4rem 0.85rem',
+                          fontWeight: 700,
+                        }}
+                      >
+                        <Phone size={16} />
+                        <span>{t('dashboard.callPatient')}</span>
+                      </a>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateStatus(req.id, 'seen')}
+                      disabled={actionLoadingId === req.id}
+                      className="btn btn-outline btn-sm"
+                      style={{ minHeight: '44px', padding: '0.4rem 0.75rem' }}
+                    >
+                      <Eye size={15} />
+                      <span>{t('dashboard.markSeen')}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateStatus(req.id, 'done')}
+                      disabled={actionLoadingId === req.id}
+                      className="btn btn-outline btn-sm"
+                      style={{
+                        minHeight: '44px',
+                        padding: '0.4rem 0.75rem',
+                        color: 'var(--color-green)',
+                        borderColor: 'var(--color-green)',
+                      }}
+                    >
+                      <CheckCircle size={15} />
+                      <span>{t('dashboard.markDone')}</span>
+                    </button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )
+      })()}
+
       {/* Requests List */}
       {loading ? (
         <Card>
@@ -209,10 +373,23 @@ export default function RequestsPage() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
                       <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-text)' }}>
                         {req.patientName}
                       </span>
+                      {req.urgent && (
+                        <span
+                          className="badge badge-coral"
+                          style={{
+                            background: '#FEE2E2',
+                            color: '#DC2626',
+                            fontWeight: 700,
+                            border: '1px solid #FCA5A5',
+                          }}
+                        >
+                          {t('urgentSection.badge')}
+                        </span>
+                      )}
                       <span className={`badge ${isOpen ? 'badge-coral' : isSeen ? 'badge-yellow' : 'badge-green'
                         }`} style={{ textTransform: 'capitalize' }}>
                         {t(`requestsPage.status${req.status.charAt(0).toUpperCase() + req.status.slice(1)}`, req.status)}

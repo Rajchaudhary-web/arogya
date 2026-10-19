@@ -26,6 +26,10 @@ import {
   Clock,
   Eye,
   CheckCheck,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
 } from 'lucide-react'
 
 interface ChatMessage {
@@ -67,6 +71,136 @@ export default function AskArogyaPage() {
   const [isSending, setIsSending] = useState(false)
   const [errorState, setErrorState] = useState<string | null>(null)
   const [lastUserMessage, setLastUserMessage] = useState<string | null>(null)
+
+  // Voice Recognition & Speech Synthesis State
+  const [isListening, setIsListening] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(true)
+  const [micPermissionDenied, setMicPermissionDenied] = useState(false)
+  const [autoReadAloud, setAutoReadAloud] = useState(false)
+  const [currentlySpeakingText, setCurrentlySpeakingText] = useState<string | null>(null)
+  const recognitionRef = useRef<any>(null)
+
+  // Check speech recognition support once on mount
+  useEffect(() => {
+    const SpeechRecognitionAPI =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognitionAPI) {
+      setSpeechSupported(false)
+    }
+  }, [])
+
+  // Stop TTS speech on unmount
+  useEffect(() => {
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort()
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, [])
+
+  // ── Speech Synthesis helper ──────────────────────────────────
+  const speakText = (text: string) => {
+    if (!('speechSynthesis' in window)) return
+
+    // If already speaking the same text, stop it
+    if (currentlySpeakingText === text) {
+      window.speechSynthesis.cancel()
+      setCurrentlySpeakingText(null)
+      return
+    }
+
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    const currentLang = i18n.language === 'hi' ? 'hi-IN' : 'en-IN'
+    utterance.lang = currentLang
+
+    // Select voice if available, fallback gracefully
+    const voices = window.speechSynthesis.getVoices()
+    const matchingVoice = voices.find((v) =>
+      v.lang.toLowerCase().startsWith(currentLang.toLowerCase().slice(0, 2))
+    )
+    if (matchingVoice) {
+      utterance.voice = matchingVoice
+    }
+
+    utterance.onend = () => {
+      setCurrentlySpeakingText(null)
+    }
+    utterance.onerror = () => {
+      setCurrentlySpeakingText(null)
+    }
+
+    setCurrentlySpeakingText(text)
+    window.speechSynthesis.speak(utterance)
+  }
+
+  // ── Start / Stop Voice Recognition ───────────────────────────
+  const toggleListening = () => {
+    const SpeechRecognitionAPI =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+
+    if (!SpeechRecognitionAPI) {
+      setSpeechSupported(false)
+      return
+    }
+
+    setMicPermissionDenied(false)
+
+    if (isListening && recognitionRef.current) {
+      try {
+        recognitionRef.current.stop()
+      } catch {
+        // ignore
+      }
+      setIsListening(false)
+      return
+    }
+
+    try {
+      const recognition = new SpeechRecognitionAPI()
+      recognitionRef.current = recognition
+      recognition.continuous = false
+      recognition.interimResults = false
+      recognition.lang = i18n.language === 'hi' ? 'hi-IN' : 'en-IN'
+
+      recognition.onstart = () => {
+        setIsListening(true)
+        setMicPermissionDenied(false)
+      }
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results?.[0]?.[0]?.transcript
+        if (transcript) {
+          // The transcript goes through the same send handler as typed text (emergency check runs first)
+          sendMessage(transcript)
+        }
+      }
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error)
+        if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+          setMicPermissionDenied(true)
+        }
+        setIsListening(false)
+      }
+
+      recognition.onend = () => {
+        setIsListening(false)
+      }
+
+      recognition.start()
+    } catch (err) {
+      console.error('Failed to start speech recognition:', err)
+      setIsListening(false)
+    }
+  }
 
   // Emergency safety rail state
   const [emergencyActive, setEmergencyActive] = useState(false)
@@ -359,6 +493,9 @@ export default function AskArogyaPage() {
       if (data && data.reply) {
         const assistantMsg: ChatMessage = { role: 'assistant', text: data.reply }
         setMessages((prev) => [...prev, assistantMsg].slice(-8))
+        if (autoReadAloud) {
+          speakText(data.reply)
+        }
       } else if (data && data.error) {
         throw new Error(data.error)
       } else {
@@ -400,6 +537,38 @@ export default function AskArogyaPage() {
             {t('chat.subtitle')}
           </p>
         </div>
+
+        {/* Read replies aloud toggle */}
+        <label
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: 'var(--color-text)',
+            cursor: 'pointer',
+            background: 'var(--color-white)',
+            padding: '0.5rem 0.85rem',
+            borderRadius: '10px',
+            border: '1px solid var(--color-border)',
+            minHeight: '44px',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={autoReadAloud}
+            onChange={(e) => {
+              setAutoReadAloud(e.target.checked)
+              if (!e.target.checked && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel()
+                setCurrentlySpeakingText(null)
+              }
+            }}
+            style={{ width: 16, height: 16, cursor: 'pointer' }}
+          />
+          <span>{t('chat.voice.autoReadAloud')}</span>
+        </label>
       </div>
 
       {/* Main Chat Interface Card */}
@@ -415,6 +584,8 @@ export default function AskArogyaPage() {
 
           {messages.map((msg, index) => {
             const isUser = msg.role === 'user'
+            const isSpeaking = currentlySpeakingText === msg.text
+
             return (
               <div
                 key={index}
@@ -438,8 +609,23 @@ export default function AskArogyaPage() {
                     </div>
                   )}
 
-                  <div className={`chat-bubble ${isUser ? 'user' : 'assistant'}`}>
-                    {msg.text}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: isUser ? 'flex-end' : 'flex-start' }}>
+                    <div className={`chat-bubble ${isUser ? 'user' : 'assistant'}`}>
+                      {msg.text}
+                    </div>
+
+                    {/* Listen (Speaker) Button on Assistant Messages */}
+                    {!isUser && (
+                      <button
+                        type="button"
+                        onClick={() => speakText(msg.text)}
+                        className={`btn-tts-listen ${isSpeaking ? 'speaking' : ''}`}
+                        title={isSpeaking ? t('chat.voice.stop') : t('chat.voice.listen')}
+                      >
+                        {isSpeaking ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                        <span>{isSpeaking ? t('chat.voice.stop') : t('chat.voice.listen')}</span>
+                      </button>
+                    )}
                   </div>
 
                   {isUser && (
@@ -710,6 +896,59 @@ export default function AskArogyaPage() {
           flexDirection: 'column',
           gap: '0.5rem',
         }}>
+          {/* Voice Recognition Warnings / Indicators */}
+          {micPermissionDenied && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                color: '#B91C1C',
+                background: '#FEE2E2',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '8px',
+              }}
+            >
+              <MicOff size={16} />
+              <span>{t('chat.voice.permissionDenied')}</span>
+            </div>
+          )}
+
+          {!speechSupported && (
+            <div
+              style={{
+                fontSize: '0.8rem',
+                color: 'var(--color-text-muted)',
+                fontStyle: 'italic',
+                textAlign: 'center',
+              }}
+            >
+              {t('chat.voice.unsupported')}
+            </div>
+          )}
+
+          {isListening && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                color: '#DC2626',
+                background: '#FEE2E2',
+                padding: '0.4rem 0.75rem',
+                borderRadius: '8px',
+              }}
+            >
+              <span className="typing-dot" style={{ background: '#DC2626' }} />
+              <span>{t('chat.voice.listening')}</span>
+            </div>
+          )}
+
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -717,6 +956,21 @@ export default function AskArogyaPage() {
             }}
             style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}
           >
+            {/* Mic Button: Browser Web Speech API only */}
+            {speechSupported && (
+              <button
+                type="button"
+                onClick={toggleListening}
+                disabled={isSending}
+                className={`btn-mic ${isListening ? 'listening' : ''}`}
+                id="btn-chat-mic"
+                title={isListening ? t('chat.voice.listening') : t('chat.voice.mic')}
+              >
+                {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                <span>{isListening ? t('chat.voice.listening') : t('chat.voice.mic')}</span>
+              </button>
+            )}
+
             <input
               type="text"
               className="input"

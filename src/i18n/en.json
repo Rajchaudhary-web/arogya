@@ -472,6 +472,21 @@
     "emergencyAlertFailed": "Could not automatically alert ASHA. Please call directly.",
     "emergencyStatusOpen": "Your ASHA has been alerted",
     "emergencyStatusSeen": "Your ASHA has seen your request",
-    "emergencyStatusDone": "Your ASHA has marked this as handled"
+    "emergencyStatusDone": "Your ASHA has marked this as handled",
+    "voice": {
+      "mic": "Speak",
+      "listening": "Listening...",
+      "unsupported": "Voice input works in Chrome.",
+      "permissionDenied": "Microphone permission was denied. Please allow microphone access in your browser.",
+      "listen": "Listen",
+      "stop": "Stop",
+      "autoReadAloud": "Read replies aloud"
+    }
+  },
+  "urgentSection": {
+    "title": "Urgent Emergency Requests",
+    "sub": "Immediate attention required – urgent visit requests from patients",
+    "badge": "Urgent",
+    "noUrgent": "No open urgent requests."
   }
 }
