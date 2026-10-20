@@ -145,7 +145,18 @@
     "noRecentUploads": "No patient uploads in the last 7 days.",
     "emptyAssigned": "No patients assigned yet. Add a new patient or claim an unassigned patient below.",
     "emptyUnassigned": "No unassigned patients currently waiting.",
-    "addPatientBtn": "Add New Patient"
+    "addPatientBtn": "Add New Patient",
+    "newSignups": {
+      "title": "New sign-ups waiting",
+      "subtitle": "Self-registered community members waiting to be assigned",
+      "searchPlaceholder": "Search by phone number...",
+      "empty": "No new sign-ups right now.",
+      "signedUp": "Signed up: {{date}}",
+      "claim": "Claim patient",
+      "claiming": "Claiming...",
+      "claimSuccess": "Patient claimed successfully!",
+      "claimError": "Failed to claim patient. Please try again."
+    }
   },
   "patientsPage": {
     "title": "Patient Management",
@@ -325,6 +336,7 @@
     "subtitle": "Community health priorities, scheduled visits & requests",
     "cards": {
       "totalPatients": "Total Patients",
+      "newSignups": "New sign-ups",
       "overdue": "Overdue Milestones",
       "dueThisWeek": "Due This Week",
       "openRequests": "Open Requests"

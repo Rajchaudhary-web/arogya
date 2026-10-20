@@ -18,6 +18,7 @@ import {
   Phone,
   MapPin,
   Calendar,
+  UserCheck,
 } from 'lucide-react'
 
 export default function MyPatientsPage() {
@@ -34,10 +35,15 @@ export default function MyPatientsPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
+  // Unassigned self-registered patients state
+  const [unassignedPatients, setUnassignedPatients] = useState<Patient[]>([])
+  const [unassignedLoading, setUnassignedLoading] = useState(true)
+  const [unassignedPhoneSearch, setUnassignedPhoneSearch] = useState('')
+  const [claimingId, setClaimingId] = useState<string | null>(null)
+
   const fetchAssignedPatients = async () => {
     if (!user) return
     setLoading(true)
-    setErrorMsg(null)
 
     try {
       const { data, error } = await supabase
@@ -56,9 +62,67 @@ export default function MyPatientsPage() {
     }
   }
 
+  const fetchUnassignedPatients = async () => {
+    if (!user) return
+    setUnassignedLoading(true)
+
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .is('asha_id', null)
+        .not('profile_id', 'is', null)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setUnassignedPatients(data ?? [])
+    } catch (err: any) {
+      console.error('Error fetching unassigned patients:', err)
+    } finally {
+      setUnassignedLoading(false)
+    }
+  }
+
+  const refreshAll = async () => {
+    setErrorMsg(null)
+    await Promise.all([fetchAssignedPatients(), fetchUnassignedPatients()])
+  }
+
   useEffect(() => {
-    fetchAssignedPatients()
+    refreshAll()
   }, [user])
+
+  const handleClaimPatient = async (patient: Patient) => {
+    if (!user) return
+    setClaimingId(patient.id)
+    setErrorMsg(null)
+    setSuccessMsg(null)
+
+    try {
+      const { error } = await supabase
+        .from('patients')
+        .update({ asha_id: user.id })
+        .eq('id', patient.id)
+        .is('asha_id', null)
+
+      if (error) throw error
+
+      setSuccessMsg(t('asha.newSignups.claimSuccess'))
+      await refreshAll()
+    } catch (err: any) {
+      console.error('Error claiming patient:', err)
+      setErrorMsg(err.message || t('asha.newSignups.claimError'))
+    } finally {
+      setClaimingId(null)
+    }
+  }
+
+  // Filter unassigned patients by phone number
+  const filteredUnassignedPatients = useMemo(() => {
+    if (!unassignedPhoneSearch.trim()) return unassignedPatients
+    const query = unassignedPhoneSearch.trim().toLowerCase()
+    return unassignedPatients.filter((p) => p.phone && p.phone.toLowerCase().includes(query))
+  }, [unassignedPatients, unassignedPhoneSearch])
 
   // Extract distinct village list for dropdown filter
   const villageList = useMemo(() => {
@@ -173,6 +237,156 @@ export default function MyPatientsPage() {
           <span>{t('asha.addPatientBtn')}</span>
         </Link>
       </div>
+
+      {/* ── Top Section: New sign-ups waiting ── */}
+      <section
+        id="section-unassigned-signups"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.85rem',
+          background: 'var(--color-bg)',
+          padding: '1.25rem',
+          borderRadius: '16px',
+          border: '1px solid var(--color-border)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Users size={20} color="var(--color-teal)" />
+              <span>{t('asha.newSignups.title')}</span>
+              {unassignedPatients.length > 0 && (
+                <span className="badge badge-teal" style={{ fontSize: '0.8rem' }}>
+                  {unassignedPatients.length}
+                </span>
+              )}
+            </h2>
+            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '0.2rem' }}>
+              {t('asha.newSignups.subtitle')}
+            </p>
+          </div>
+
+          {/* Phone Search Box */}
+          <div style={{ position: 'relative', width: '100%', maxWidth: '280px' }}>
+            <Phone
+              size={16}
+              color="var(--color-text-muted)"
+              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
+            />
+            <input
+              type="text"
+              className="input"
+              value={unassignedPhoneSearch}
+              onChange={(e) => setUnassignedPhoneSearch(e.target.value)}
+              placeholder={t('asha.newSignups.searchPlaceholder')}
+              style={{ paddingLeft: '2.3rem', minHeight: '48px', fontSize: '0.9rem' }}
+              id="input-search-unassigned-phone"
+            />
+          </div>
+        </div>
+
+        {unassignedLoading ? (
+          <Card>
+            <div className="empty-state" style={{ padding: '1.5rem' }}>
+              <span className="spinner spinner-md" />
+              <p>{t('app.actions.loading')}</p>
+            </div>
+          </Card>
+        ) : filteredUnassignedPatients.length === 0 ? (
+          <Card>
+            <div className="empty-state" style={{ padding: '1.5rem' }}>
+              <Users size={28} color="var(--color-text-muted)" style={{ opacity: 0.6 }} />
+              <p style={{ marginTop: '0.5rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                {t('asha.newSignups.empty')}
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '0.85rem',
+            }}
+          >
+            {filteredUnassignedPatients.map((patient) => {
+              const formattedDate = patient.created_at
+                ? new Date(patient.created_at).toLocaleDateString()
+                : '—'
+              const isClaiming = claimingId === patient.id
+
+              return (
+                <Card
+                  key={patient.id}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: '0.75rem',
+                    borderLeft: '4px solid var(--color-teal)',
+                    background: 'var(--color-white)',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                        {patient.name}
+                      </h3>
+                      {patient.village && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                          <MapPin size={13} color="var(--color-coral)" />
+                          <span>{patient.village}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}>
+                      <Phone size={14} color="var(--color-primary)" />
+                      <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+                        {patient.phone || '—'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                      <Calendar size={13} />
+                      <span>{t('asha.newSignups.signedUp', { date: formattedDate })}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleClaimPatient(patient)}
+                    disabled={isClaiming}
+                    className="btn btn-teal"
+                    style={{
+                      width: '100%',
+                      minHeight: '48px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                    }}
+                    id={`btn-claim-patient-${patient.id}`}
+                  >
+                    {isClaiming ? (
+                      <>
+                        <span className="spinner spinner-sm" />
+                        <span>{t('asha.newSignups.claiming')}</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck size={18} />
+                        <span>{t('asha.newSignups.claim')}</span>
+                      </>
+                    )}
+                  </button>
+                </Card>
+              )
+            })}
+          </div>
+        )}
+      </section>
 
       {/* Search and Filters Toolbar */}
       <div style={{

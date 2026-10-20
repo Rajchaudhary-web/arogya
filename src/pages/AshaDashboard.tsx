@@ -23,6 +23,7 @@ import {
   FileText,
   HeartPulse,
   AlertCircle,
+  UserCheck,
 } from 'lucide-react'
 
 interface EnrichedUploadItem extends HistoryEntry {
@@ -46,6 +47,7 @@ export default function AshaDashboard() {
 
   // Aggregated card metrics & lists
   const [totalPatientsCount, setTotalPatientsCount] = useState<number>(0)
+  const [newSignupsCount, setNewSignupsCount] = useState<number>(0)
   const [openRequests, setOpenRequests] = useState<EnrichedVisitRequest[]>([])
   const [overdueList, setOverdueList] = useState<ScheduledCareItem[]>([])
   const [dueThisWeekList, setDueThisWeekList] = useState<ScheduledCareItem[]>([])
@@ -73,6 +75,17 @@ export default function AshaDashboard() {
 
       const patientMap = new Map<string, (typeof patients)[0]>()
       patients.forEach((p) => patientMap.set(p.id, p))
+
+      // ── BATCH QUERY 1B: Fetch unassigned self-registered patients count ──
+      const { count: unassignedCount, error: uErr } = await supabase
+        .from('patients')
+        .select('id', { count: 'exact', head: true })
+        .is('asha_id', null)
+        .not('profile_id', 'is', null)
+
+      if (!uErr && typeof unassignedCount === 'number') {
+        setNewSignupsCount(unassignedCount)
+      }
 
       // ── BATCH QUERY 2: Vaccine Schedule (Reference data) ──
       const { data: vsData } = await supabase
@@ -458,6 +471,21 @@ export default function AshaDashboard() {
               {totalPatientsCount}
             </span>
             <span className="stat-label">{t('dashboard.cards.totalPatients')}</span>
+          </Card>
+        </Link>
+
+        {/* Card 1B: New sign-ups waiting */}
+        <Link to="/asha/patients#section-unassigned-signups" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Card className="stat-card" style={{ borderTop: '4px solid var(--color-teal)' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.25rem' }}>
+              <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--color-teal-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <UserCheck size={22} color="var(--color-teal)" />
+              </div>
+            </div>
+            <span className="stat-value" style={{ color: 'var(--color-teal)' }}>
+              {newSignupsCount}
+            </span>
+            <span className="stat-label">{t('dashboard.cards.newSignups')}</span>
           </Card>
         </Link>
 
